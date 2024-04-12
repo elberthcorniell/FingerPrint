@@ -13,9 +13,9 @@ use mysqli;
 date_default_timezone_set("Africa/Lagos");
 
 class Database {
-    private const host = "localhost";
+    private const host = "mysql";
     private const user = "root";
-    private const password = "";
+    private const password = "12345678";
     private const database = "fingerprint";
     private $connection;
 

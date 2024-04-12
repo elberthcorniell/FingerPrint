@@ -30,6 +30,7 @@ let FingerprintSdkTest = (function () {
         };
         this.sdk.onSamplesAcquired = function (s) {
             // Sample acquired event triggers this function
+            console.log(s)
             storeSample(s);
         };
         this.sdk.onQualityReported = function (e) {
@@ -106,21 +107,6 @@ class Reader{
     }
 
     displayReader(){
-        let readers = this.reader.getInfo();  // grab available readers here
-        let id = this.selectFieldID;
-        let selectField = document.getElementById(id);
-        selectField.innerHTML = `<option>Select Fingerprint Reader</option>`;
-        readers.then(function(availableReaders){  // when promise is fulfilled
-            if(availableReaders.length > 0){
-                showMessage("");
-                for(let reader of availableReaders){
-                    selectField.innerHTML += `<option value="${reader}" selected>${reader}</option>`;
-                }
-            }
-            else{
-                showMessage("Please Connect the Fingerprint Reader");
-            }
-        })
     }
 }
 
@@ -149,6 +135,8 @@ class Hand{
 
 let myReader = new Reader();
 
+console.log(Reader)
+
 function beginEnrollment(){
     setReaderSelectField("enrollReaderSelect");
     myReader.setStatusField("enrollmentStatusField");
@@ -168,7 +156,7 @@ function showMessage(message, message_type="error"){
     let types = new Map();
     types.set("success", "my-text7 my-pri-color text-bold");
     types.set("error", "text-danger");
-    let statusFieldID = myReader.currentStatusField;
+    let statusFieldID ="status";
     if(statusFieldID){
         let statusField = document.getElementById(statusFieldID);
         statusField.innerHTML = `<p class="my-text7 my-pri-color my-3 ${types.get(message_type)} font-weight-bold">${message}</p>`;
