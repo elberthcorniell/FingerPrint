@@ -4,6 +4,9 @@ import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { type FingerprintReader, type SamplesAcquired } from '@digitalpersona/devices';
 import { type BioSample } from "@digitalpersona/core";
+import { fingerprint, Hand } from "@/src/utils/fingerprint";
+import { enroll } from "@/actions/enroll";
+import { verify } from "@/actions/verify";
 
 const ifExists = (fn: () => void) => (typeof fn !== 'undefined') ? fn : () => {}
 
@@ -13,6 +16,11 @@ export default function Home() {
   const reader = useRef<FingerprintReader>()
   const [samples, setSamples] = useState<SamplesAcquired['samples'][]>([])
   const [isConnected, setIsConnected] = useState(false)
+  const hand = useRef(new Hand({
+    userId: 1
+  }))
+  const [activeModal, setActiveModal] = useState<'verify' | 'enroll'>()
+
   useEffect(() => {
     setTimeout(async () => {
       if(!window.Fingerprint) return
@@ -40,7 +48,11 @@ export default function Home() {
         // @ts-expect-error
         if(s.deviceUid === selectedDevice) {
           setSamples(samples => [s.samples, ...samples])
+          hand.current.addIndexFingerSample(s.samples as unknown as string)
           const parsed: BioSample[] = JSON.parse(s.samples as unknown as string)
+          if(activeModal === 'verify') {
+            verify(parsed[0]?.Data)
+          }
           parsed.map(p => {
             console.log(p)
           })
@@ -49,12 +61,13 @@ export default function Home() {
         }
     };
     reader.current.onQualityReported = function (e) {
+      // @ts-expect-error
       const quality = window.Fingerprint.QualityCode[e.quality];
-      console.log(quality)
     }
+      // @ts-expect-error
       reader.current.startAcquisition(window.Fingerprint.SampleFormat.Intermediate, "").then(console.log)
     }, 2000)
-  }, [selectedDevice])
+  }, [selectedDevice, activeModal])
 
   return (<>
     <Script strategy="afterInteractive" src="/js/jquery-3.5.0.min.js" />
@@ -67,10 +80,10 @@ export default function Home() {
     <div className="container">
       <div id="controls" className="row justify-content-center mx-5 mx-sm-0 mx-lg-5">
         <div className="col-sm mb-2 ml-sm-5">
-          <button id="createEnrollmentButton" type="button" className="btn btn-primary btn-block" data-toggle="modal" data-target="#createEnrollment" onClick={ifExists(window.beginEnrollment)}>Create Enrollment</button>
+          <button id="createEnrollmentButton" type="button" className="btn btn-primary btn-block" data-toggle="modal" data-target="#createEnrollment" onClick={() => setActiveModal('enroll')}>Create Enrollment</button>
         </div>
         <div className="col-sm mb-2 mr-sm-5">
-          <button id="verifyIdentityButton" type="button" className="btn btn-primary btn-block" data-toggle="modal" data-target="#verifyIdentity" onClick={ifExists(window.beginIdentification)}>Verify Identity</button>
+          <button id="verifyIdentityButton" type="button" className="btn btn-primary btn-block" data-toggle="modal" data-target="#verifyIdentity" onClick={() => setActiveModal('verify')}>Verify Identity</button>
         </div>
       </div>
     </div>
@@ -87,7 +100,10 @@ export default function Home() {
             </div>
             <div id="status"></div>
             <div className="modal-body">
-              <form action="#" onSubmit={() => false}>
+              <form action="#" onSubmit={(e) => {
+                e.preventDefault()
+                enroll(hand.current.generateFullHand())
+              }}>
                 <div id="enrollmentStatusField" className="text-center">
                 </div>
                 <div className="form-row mt-3">
@@ -128,7 +144,7 @@ export default function Home() {
                 </div>
                 <div className="form-row m-3 mt-md-5 justify-content-center">
                   <div className="col-4">
-                    <button className="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onClick={ifExists(window.serverEnroll)}>Enroll</button>
+                    <button className="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit">Enroll</button>
                   </div>
                   <div className="col-4">
                     <button className="btn btn-secondary btn-outline-warning btn-block my-text-button py-1 border-0" type="button" onClick={() => reader.current?.stopAcquisition}>Clear</button>
@@ -165,8 +181,13 @@ export default function Home() {
                 <div className="form-row mt-3">
                   <div className="col mb-3 mb-md-0 text-center">
                     <label htmlFor="verifyReaderSelect" className="my-text7 my-pri-color">Choose Fingerprint Reader</label>
-                    <select defaultValue={"Select Fingerprint Reader"} name="readerSelect" id="verifyReaderSelect" className="form-control" onClick={ifExists(window.beginIdentification)}>
+                    <select
+                    defaultValue={"Select Fingerprint Reader"}
+                    name="readerSelect" id="enrollReaderSelect" value={selectedDevice} className="form-control" onChange={({ target: { value}}) => {
+                      setSelectedDevice(value)
+                    }}>
                       <option>Select Fingerprint Reader</option>
+                      {devices.map(d => <option key={d}>{d}</option>)}
                     </select>
                   </div>
                 </div>
@@ -191,9 +212,6 @@ export default function Home() {
                 <div className="form-row m-3 mt-md-5 justify-content-center">
                   <div className="col-4">
                     <button className="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onClick={ifExists(window.captureForIdentify)}>Start Capture</button>
-                  </div>
-                  <div className="col-4">
-                    <button className="btn btn-primary btn-block my-sec-bg my-text-button py-1" type="submit" onClick={ifExists(window.serverIdentify)}>Identify</button>
                   </div>
                   <div className="col-4">
                     <button className="btn btn-secondary btn-outline-warning btn-block my-text-button py-1 border-0" type="button" onClick={() => reader.current?.stopAcquisition}>Clear</button>

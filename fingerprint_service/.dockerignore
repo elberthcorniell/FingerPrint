@@ -2,6 +2,9 @@
 .vscode
 vendor
 node_modules
+app/node_modules/*
+app/.next/*
+mysql
 thirdparty/*
 !thirdparty/grpc-fingerprint-engine/src/protos
 !thirdparty/grpc-fingerprint-engine/src/php

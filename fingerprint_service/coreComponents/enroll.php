@@ -8,11 +8,12 @@
 
 require_once("../coreComponents/basicRequirements.php");
 
-if (!empty($_POST["data"])) {
-    $user_data = json_decode($_POST["data"]);
+$jsonData = file_get_contents('php://input');
+$data = json_decode($jsonData, true);
+if (!empty($data)) {
 
-    $index_finger_string_array = $user_data->index_finger;
-    $middle_finger_string_array = $user_data->middle_finger;
+    $index_finger_string_array = $data["index_finger"];
+    $middle_finger_string_array = $data["middle_finger"];
 
     $enrolled_index_finger = enroll_fingerprint($index_finger_string_array);
     $enrolled_middle_finger = enroll_fingerprint($middle_finger_string_array);

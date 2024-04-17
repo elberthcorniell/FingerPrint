@@ -28,8 +28,7 @@ function enroll_fingerprint($pre_fmd_string_array){
     $enrollment_request->setFmdCandidates($pre_enrolled_fmds);
 
     list($enrolled_fmd, $status) = $client->EnrollFingerprint($enrollment_request)->wait();
-    
-    if ($status->code === Grpc\STATUS_OK) {
+    if ($status->code === Grpc\STATUS_OK && $enrolled_fmd->getBase64EnrolledFMD()) {
         return $enrolled_fmd->getBase64EnrolledFMD();
     }
     else {
