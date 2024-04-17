@@ -1,2 +1,3 @@
 *.idea
 fingerprint_service/mysql/data/
+.npmrc
