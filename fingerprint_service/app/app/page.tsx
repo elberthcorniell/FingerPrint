@@ -44,14 +44,15 @@ export default function Home() {
         // Detects if there is a failure in communicating with U.R.U web SDK
         console.log("Communication Failed. Please Reconnect Device")
     };
-    reader.current.onSamplesAcquired = function (s) {
+    reader.current.onSamplesAcquired = async function (s) {
         // @ts-expect-error
         if(s.deviceUid === selectedDevice) {
           setSamples(samples => [s.samples, ...samples])
           hand.current.addIndexFingerSample(s.samples as unknown as string)
           const parsed: BioSample[] = JSON.parse(s.samples as unknown as string)
           if(activeModal === 'verify') {
-            verify(parsed[0]?.Data)
+            const res = await verify(parsed[0]?.Data)
+            if(res === 'match') alert('Verificado')
           }
           parsed.map(p => {
             console.log(p)
