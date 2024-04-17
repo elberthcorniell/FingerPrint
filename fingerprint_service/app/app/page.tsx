@@ -4,7 +4,7 @@ import Script from "next/script";
 import { useEffect, useRef, useState } from "react";
 import { type FingerprintReader, type SamplesAcquired } from '@digitalpersona/devices';
 import { type BioSample } from "@digitalpersona/core";
-import { fingerprint, Hand } from "@/src/utils/fingerprint";
+import { Hand } from "@/src/utils/fingerprint";
 import { enroll } from "@/actions/enroll";
 import { verify } from "@/actions/verify";
 
@@ -53,6 +53,7 @@ export default function Home() {
           if(activeModal === 'verify') {
             const res = await verify(parsed[0]?.Data)
             if(res === 'match') alert('Verificado')
+              else alert("No hay coincidencias")
           }
           parsed.map(p => {
             console.log(p)
