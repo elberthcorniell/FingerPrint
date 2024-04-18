@@ -1,10 +1,3 @@
 <?php
-/*
- * Author: Dahir Muhammad Dahir
- * Date: 12-April-2020 5:07 AM
- * About: I will tell you later
- */
-
-namespace fingerprint;
-
-require("./src/html/home.html");
+echo "<h1>Hello Fingerprint World</h1>";
+echo "<h3>If you are seeing this page, it means the fingerprint client and engine are running successfully</h3>";

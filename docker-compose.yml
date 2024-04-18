@@ -1,0 +1,63 @@
+services:
+  fingerprint_engine:
+    image: dahirmuhammaddahir/grpc_fingerprint_engine
+    ports:
+      - 4134:4134
+    restart: unless-stopped
+    container_name: fingerprint_engine
+    networks:
+      - fingerprint_engine_net
+  
+  fingerprint_client:
+    image: r3y3s_fingerprint
+    build: .
+    ports:
+      - 5555:80
+    expose:
+      - 80
+    restart: unless-stopped
+    container_name: r3y3s_fingerprint_client
+    depends_on:
+      - fingerprint_engine
+    networks:
+      - fingerprint_engine_net
+      - fingerprint_client_net
+    volumes:
+      - ./coreComponents:/var/www/html/coreComponents
+  # app:
+  #   restart: always
+  #   build: 
+  #     dockerfile: app.Dockerfile
+  #   command: yarn dev
+  #   env_file:
+  #     - ./.env
+  #   ports:
+  #     - 3000:3000
+  #   expose:
+  #     - 3306
+  #   volumes:
+  #     - "./app/:/usr/src/app/"
+  #     - "/usr/src/app/node_modules"
+  #   networks:
+  #     - fingerprint_client_net
+
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes: 
+      - ./nginx/letsencrypt:/etc/letsencrypt    
+    depends_on:
+      - fingerprint_engine
+      - fingerprint_client
+    networks:
+      - fingerprint_engine_net
+      - fingerprint_client_net
+networks:
+  fingerprint_engine_net:
+  fingerprint_client_net:
+

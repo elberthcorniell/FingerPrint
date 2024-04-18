@@ -1,2 +1,0 @@
-# DigitalPersona Fingerprint Service Containerized
-
